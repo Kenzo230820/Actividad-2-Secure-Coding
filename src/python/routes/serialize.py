@@ -1,10 +1,24 @@
 # src/python/routes/serialize.py
+
 # PASO 4: Insecure Deserialization — usar JSON con schema validado en lugar de pickle
 # CODIGO SEGURO
-// VULNERABLE — deserializacion directa desde input de usuario
-@PostMapping("/restore")
-public ResponseEntity<?> restore(@RequestBody byte[] data) throws Exception {
-    ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(data));
-    Object obj = ois.readObject();  // puede activar gadget chains del classpath
-    return ResponseEntity.ok(obj.toString());
-}
+
+import json
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, ValidationError
+
+router = APIRouter()
+
+class UserPreferences(BaseModel):
+    theme: str
+    language: str
+    notifications: bool
+
+@router.post("/load-prefs")
+async def load_prefs(data: str):
+    try:
+        raw = json.loads(data)
+        validated = UserPreferences(**raw)
+    except (json.JSONDecodeError, ValidationError) as e:
+        raise HTTPException(status_code=400, detail="Datos invalidos")
+    return validated.model_dump()
