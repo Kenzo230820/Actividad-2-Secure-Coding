@@ -1,7 +1,7 @@
 # src/python/routes/serialize.py
 
 # PASO 4: Insecure Deserialization
-# CÓDIGO SEGURO — usar JSON con esquema validado en lugar de deserialización insegura
+# CÓDIGO SEGURO — usar JSON con esquema validado en lugar de pickle
 
 import json
 from fastapi import APIRouter, HTTPException
@@ -15,9 +15,6 @@ class UserPreferences(BaseModel):
     language: str
     notifications: bool
 
-    class Config:
-        extra = "forbid"
-
 
 @router.post("/load-prefs")
 async def load_prefs(data: str):
@@ -25,6 +22,6 @@ async def load_prefs(data: str):
         raw = json.loads(data)
         validated = UserPreferences(**raw)
     except (json.JSONDecodeError, ValidationError):
-        raise HTTPException(status_code=400, detail="Datos inválidos")
+        raise HTTPException(status_code=400, detail="Datos invalidos")
 
-    return validated.dict()
+    return validated.model_dump()
