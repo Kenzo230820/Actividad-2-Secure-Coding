@@ -16,12 +16,12 @@ class UserPreferences(BaseModel):
     notifications: bool
 
 
-@router.post("/load-prefs")
 async def load_prefs(data: str):
     try:
         raw = json.loads(data)
         validated = UserPreferences(**raw)
-    except (json.JSONDecodeError, ValidationError):
+-   except (json.JSONDecodeError, ValidationError) as e:  # ← eliminó la variable 'e'
++   except (json.JSONDecodeError, ValidationError):
         raise HTTPException(status_code=400, detail="Datos invalidos")
 
     return validated.model_dump()
