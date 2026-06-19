@@ -18,6 +18,7 @@ async def load_prefs(data: str):
     try:
         raw = json.loads(data)
         validated = UserPreferences(**raw)
-    except (json.JSONDecodeError, ValidationError) as e:
+    except (json.JSONDecodeError, ValidationError):
         raise HTTPException(status_code=400, detail="Datos invalidos")
+
     return validated.model_dump()
