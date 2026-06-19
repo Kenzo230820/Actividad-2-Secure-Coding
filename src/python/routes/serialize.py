@@ -1,21 +1,22 @@
 # src/python/routes/serialize.py
 # PASO 4: Insecure Deserialization — usar JSON con schema validado en lugar de pickle
 # CODIGO SEGURO
-// VULNERABLE — node-serialize permite funciones en el JSON serializado
-const serialize = require('node-serialize');
+import json
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, ValidationError
 
-app.post('/restore', (req, res) => {
-    const obj = serialize.unserialize(req.body.data);  // ejecuta funciones
-    res.json(obj);
-});
-{"rce":"_$$ND_FUNC$$_function(){require('child_process').exec('id',function(e,o){console.log(o)});}()"}
-// SEGURO — JSON.parse con validacion de esquema
-const Joi = require('joi');
-const schema = Joi.object({ theme: Joi.string(), lang: Joi.string() });
+router = APIRouter()
 
-app.post('/restore', (req, res) => {
-    const raw = JSON.parse(req.body.data);  // JSON puro, sin ejecucion de funciones
-    const { error, value } = schema.validate(raw);
-    if (error) return res.status(400).json({ error: 'Datos invalidos' });
-    res.json(value);
-});
+class UserPreferences(BaseModel):
+    theme: str
+    language: str
+    notifications: bool
+
+@router.post("/load-prefs")
+async def load_prefs(data: str):
+    try:
+        raw = json.loads(data)
+        validated = UserPreferences(**raw)
+    except (json.JSONDecodeError, ValidationError) as e:
+        raise HTTPException(status_code=400, detail="Datos invalidos")
+    return validated.model_dump()
