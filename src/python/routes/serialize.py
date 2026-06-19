@@ -1,5 +1,15 @@
-# SEGURO — SafeLoader deserializa solo tipos basicos
+# CODIGO SEGURO
+import json
 import yaml
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, ValidationError
+
+router = APIRouter()
+
+class UserPreferences(BaseModel):
+    theme: str
+    language: str
+    notifications: bool
 
 @router.post("/config")
 async def load_config(data: str):
