@@ -24,4 +24,4 @@ async def load_prefs(data: str):
     except (json.JSONDecodeError, ValidationError):
         raise HTTPException(status_code=400, detail="Datos invalidos")
 
-    return validated.model_dump()
+    return validated.model_dump() 
