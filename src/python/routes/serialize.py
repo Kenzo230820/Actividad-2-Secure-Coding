@@ -1,24 +1,28 @@
 # src/python/routes/serialize.py
 
-# PASO 4: Insecure Deserialization — usar JSON con schema validado en lugar de pickle
-# CODIGO SEGURO
+# PASO 4: Insecure Deserialization
+# CÓDIGO SEGURO — usar JSON con esquema validado en lugar de deserialización insegura
 
-import json
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, ValidationError
+from fastapi import APIRouter
+from pydantic import BaseModel, Field, ConfigDict
 
 router = APIRouter()
 
-class UserPreferences(BaseModel):
-    theme: str
-    language: str
-    notifications: bool
 
-@router.post("/load-prefs")
-async def load_prefs(data: str):
-    try:
-        raw = json.loads(data)
-        validated = UserPreferences(**raw)
-    except (json.JSONDecodeError, ValidationError) as e:
-        raise HTTPException(status_code=400, detail="Datos invalidos")
-    return validated.model_dump()
+class ConfigPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    nombre: str = Field(..., min_length=1, max_length=100)
+    entorno: str = Field(..., min_length=1, max_length=50)
+    activo: bool
+    version: int = Field(..., ge=1)
+
+
+@router.post("/config")
+async def load_config(config: ConfigPayload):
+    return {
+        "nombre": config.nombre,
+        "entorno": config.entorno,
+        "activo": config.activo,
+        "version": config.version
+    }
